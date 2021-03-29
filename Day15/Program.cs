@@ -20,7 +20,7 @@ void Part1()
 
 void Part2()
 {
-	var elfAttackPower = 4;
+	var elfAttackPower = 23;
 	while (true)
 	{
 		if (Simulate(elfAttackPower))
@@ -76,7 +76,7 @@ bool Simulate(int elfAttackPower)
 static bool GameOver(List<Unit> units)
 {
 	// game over?
-	var elves = units.Count(u => u.IsAlive&& !u.IsGoblin);
+	var elves = units.Count(u => u.IsAlive && !u.IsGoblin);
 	var goblins = units.Count(u => u.IsAlive && u.IsGoblin);
 	return elves == 0 || goblins == 0;
 }
@@ -103,6 +103,8 @@ static void Print(int round, char[,] map, List<Unit> units, int elfAttackPower)
 	if (GameOver(units))
 	{
 		System.Console.WriteLine($"Combat ends after {round} full rounds.");
+		var elves = units.Count(u => u.IsAlive && !u.IsGoblin);
+		System.Console.WriteLine($"{elves} elves.");
 		var points = units.Sum(u => u.HitPoints);
 		System.Console.WriteLine($"Outcome: {round} * {points} = {round * points}");
 	}
@@ -158,8 +160,9 @@ internal class Unit : IComparable
 	}
 	public int CompareTo(object obj)
 	{
-		var other = (Unit)obj;
-		return FieldScoreInReadingOrder(Pos, _map).CompareTo(FieldScoreInReadingOrder(other.Pos, _map));
+		var myScore = FieldScoreInReadingOrder(Pos, _map);
+		var otherScore = FieldScoreInReadingOrder(((Unit)obj).Pos, _map);
+		return myScore.CompareTo(otherScore);
 	}
 
 	public int HitPoints { get; set; }
@@ -174,14 +177,13 @@ internal class Unit : IComparable
 		var inRange = units
 			.Where(u => u.IsAlive && u != this && u.IsGoblin != IsGoblin)
 			.SelectMany(u => GetAdjacent(u.Pos, _map)).ToList();
-		var nearest = inRange
+		var paths = inRange
 			.SelectMany(n => FindShortestPaths(Pos, n, _map))
-			.OrderBy(p => p.Count)
 			.ToList();
-		if (nearest.Any())
+		if (paths.Any())
 		{
-			var min = nearest.First().Count;
-			var chosen = nearest
+			var min = paths.Min(p => p.Count);
+			var chosen = paths
 				.Where(n => n.Count == min)
 				.OrderBy(n => FieldScoreInReadingOrder(n.Last(), _map))
 				.ToList();
@@ -199,9 +201,9 @@ internal class Unit : IComparable
 	{
 		var results = new List<List<(int x, int y)>>();
 		var up = (from.x, from.y - 1);
-		var down = (from.x, from.y + 1);
 		var left = (from.x - 1, from.y);
 		var right = (from.x + 1, from.y);
+		var down = (from.x, from.y + 1);
 
 		results.Add(BFS(up, to, map));
 		results.Add(BFS(left, to, map));
@@ -268,9 +270,9 @@ internal class Unit : IComparable
 	internal static IEnumerable<(int x, int y)> GetAdjacent((int x, int y) pos, char[,] map)
 	{
 		var up = (pos.x, pos.y - 1);
-		var down = (pos.x, pos.y + 1);
 		var left = (pos.x - 1, pos.y);
 		var right = (pos.x + 1, pos.y);
+		var down = (pos.x, pos.y + 1);
 		if (Check(up, map)) yield return up;
 		if (Check(left, map)) yield return left;
 		if (Check(right, map)) yield return right;
