@@ -1,0 +1,2 @@
+/home/z1c0/dev/adventofcode2018/Day20/Program.cs(22,21): error CS1503: Argument 1: cannot convert from '(int, int)' to '((int, int), int)' [/home/z1c0/dev/adventofcode2018/Day20/Day20.csproj]
+/home/z1c0/dev/adventofcode2018/Day20/Program.cs(22,17): error CS8422: A static local function cannot contain a reference to 'this' or 'base'. [/home/z1c0/dev/adventofcode2018/Day20/Day20.csproj]
