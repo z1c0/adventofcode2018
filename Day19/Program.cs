@@ -8,16 +8,29 @@ using System.Text;
 Console.WriteLine("Day 19 -START");
 var sw = Stopwatch.StartNew();
 Part1(0);
-Part1(1);
+//Part1(1);
 Console.WriteLine($"END (after {sw.Elapsed.TotalSeconds} seconds)");
 
 static void Part1(int register0)
 {
 	var program = ReadInput();
+	Rewrite(program);
 	var cpu = new Cpu(register0);
 	cpu.Init(program.First());
 	cpu.Execute(program.Skip(1).ToList());
 	Console.WriteLine(cpu);
+}
+
+static void Rewrite(IEnumerable<Instruction> program)
+{
+	var sb = new StringBuilder();
+	sb.AppendLine("var a, b, c, d, e, f;");
+	foreach (var instruction in program)
+	{
+		sb.AppendLine(instruction.Rewrite());
+		
+	}
+	Console.WriteLine(sb);
 }
 
 static IEnumerable<Instruction> ReadInput()
@@ -44,7 +57,48 @@ static IEnumerable<Instruction> ReadInput()
 	}
 }
 
-internal record Instruction(OpCode OpCode, int A, int B, int C);
+internal record Instruction(OpCode OpCode, int A, int B, int C)
+{
+	internal string Rewrite()
+	{
+		char R(int r)
+		{
+			return r switch
+			{
+				0 => 'a',
+				1 => 'b',
+				2 => 'c',
+				3 => 'd',
+				4 => 'e',
+				5 => 'f',
+				_ => throw new NotImplementedException()
+			};
+		}
+		switch (OpCode)
+		{
+			case OpCode.BindIp:
+				return string.Empty;
+			case OpCode.Addi:
+				return $"{R(C)} = {R(A)} + {B};";
+			case OpCode.Addr:
+				return $"{R(C)} = {R(A)} + {R(B)};";
+			case OpCode.Seti:
+				return $"{R(C)} = {A};";
+			case OpCode.Setr:
+				return $"{R(C)} = {R(A)};";
+			case OpCode.Muli:
+				return $"{R(C)} = {R(A)} * {B};";
+			case OpCode.Mulr:
+				return $"{R(C)} = {R(A)} * {R(B)};";
+			case OpCode.Eqrr:
+				return $"{R(C)} = {R(A)} == {R(B)} ? 1 : 0;";
+			case OpCode.Gtrr:
+				return $"{R(C)} = {R(A)} > {R(B)} ? 1 : 0;";
+			default:
+				throw new NotImplementedException($"[{this}]");
+		}
+	}
+}
 
 internal enum OpCode
 {
