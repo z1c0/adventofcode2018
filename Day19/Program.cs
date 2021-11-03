@@ -8,27 +8,74 @@ using System.Text;
 Console.WriteLine("Day 19 -START");
 var sw = Stopwatch.StartNew();
 Part1(0);
-//Part1(1);
+//Part1(1);  // This would not terminate.
+Part2();
 Console.WriteLine($"END (after {sw.Elapsed.TotalSeconds} seconds)");
 
 static void Part1(int register0)
 {
-	var program = ReadInput();
-	Rewrite(program);
+	var program = ReadInput().ToList();
 	var cpu = new Cpu(register0);
 	cpu.Init(program.First());
-	cpu.Execute(program.Skip(1).ToList());
+	program.RemoveAt(0);
+	//Rewrite(program);
+	cpu.Execute(program.ToList());
 	Console.WriteLine(cpu);
 }
 
-static void Rewrite(IEnumerable<Instruction> program)
+static void Part2()
+{
+	//
+	// The "disassembled code" (using Rewrite and manual)
+	// turned out to calculate pairs of numbers that add up to 10551340
+	// and sum up the first of those.
+	// This can be simplified to the snippet below.
+	//
+	var a = 0;
+	var c = 10551340;
+	for (var i = 1; i <= c; i++)
+	{
+		if (c % i == 0)
+		{
+			a += i;
+		}
+	}
+
+	/*
+	long a = 0;
+	long b = 0;
+	long c = 10551340;
+	long e = 1;
+	do
+	{
+		b = 1;
+
+		do
+		{
+			if (e * b == c)
+			{
+				a += e;
+				System.Console.WriteLine($"{e} * {b} = {e * b}");
+			}
+			b++;
+		}
+		while (b <= c);
+
+		e++;
+	}
+	while (e <= c);
+	*/
+	Console.WriteLine("a: " + a);
+}
+
+static void Rewrite(List<Instruction> program)
 {
 	var sb = new StringBuilder();
-	sb.AppendLine("var a, b, c, d, e, f;");
-	foreach (var instruction in program)
+	sb.AppendLine("int a = 1, b = 0, c = 0, d = 0, e = 0, f = 0;");
+	for (var i = 0; i < program.Count; i++)
 	{
-		sb.AppendLine(instruction.Rewrite());
-		
+		var instruction = program[i];
+		sb.AppendLine($"/* {i} */ {instruction.Rewrite()}  /* {instruction} */");
 	}
 	Console.WriteLine(sb);
 }
@@ -59,6 +106,11 @@ static IEnumerable<Instruction> ReadInput()
 
 internal record Instruction(OpCode OpCode, int A, int B, int C)
 {
+	public override string ToString()
+	{
+		return $"{OpCode} {A} {B} {C}";
+	}
+
 	internal string Rewrite()
 	{
 		char R(int r)
@@ -76,8 +128,6 @@ internal record Instruction(OpCode OpCode, int A, int B, int C)
 		}
 		switch (OpCode)
 		{
-			case OpCode.BindIp:
-				return string.Empty;
 			case OpCode.Addi:
 				return $"{R(C)} = {R(A)} + {B};";
 			case OpCode.Addr:
@@ -135,7 +185,9 @@ internal class Cpu
 	{
 		while (_reg[_ipRegister] < program.Count)
 		{
-			Execute(program[_reg[_ipRegister]]);
+			var instruction = program[_reg[_ipRegister]];
+			//Console.WriteLine($"{this}  -  {instruction}");
+			Execute(instruction);
 		}
 	}
 
