@@ -9,6 +9,17 @@ Console.WriteLine("Day 21 -START");
 var sw = Stopwatch.StartNew();
 Part1();
 Part1_Rewritten();
+Console.WriteLine($"END (after {sw.Elapsed.TotalSeconds} seconds)");
+
+static void Part1()
+{
+	var program = ReadInput().ToList();
+	var cpu = new Cpu(0);
+	cpu.Init(program.First());
+	program.RemoveAt(0);
+	Rewrite(program);
+	//cpu.Execute(program.ToList());
+}
 
 static void Part1_Rewritten()
 {
@@ -63,18 +74,6 @@ L_28:
 		return;
 	}
 	goto L_6;
-}
-
-Console.WriteLine($"END (after {sw.Elapsed.TotalSeconds} seconds)");
-
-static void Part1()
-{
-	var program = ReadInput().ToList();
-	var cpu = new Cpu(72);
-	cpu.Init(program.First());
-	program.RemoveAt(0);
-	Rewrite(program);
-	//cpu.Execute(program.ToList());
 }
 
 static void Rewrite(List<Instruction> program)
