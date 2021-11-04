@@ -21,3 +21,9 @@ For example:
 * `eqrr 5 2 5` becomes `f = f == c ? 1 : 0;`
 
 (The variables `a` to `f` represent the registers from `0` to `5` here.)
+
+## Day21
+
+The **code decompilation** helper from **Day 18** came in handy here again and
+made this puzzle trivial to solve.
+

@@ -1,0 +1,53 @@
+int a = 1, b = 0, c = 0, d = 0, e = 0, f = 0;
+
+//
+// This is the mentioned INITIAL TEST.
+//
+/* 0 */ e = 123;  /* Seti 123 0 4 */
+/* 1 */ e = e & 456;  /* Bani 4 456 4 */
+/* 2 */ e = e == 72 ? 1 : 0;  /* Eqri 4 72 4 */
+/* 3 */ c = e + c;  /* Addr 4 2 2 */
+/* 4 */ c = 0;  /* Seti 0 0 2 */
+//
+// End of INITIAL TEST.
+//
+
+/* 5 */ e = 0;  /* Seti 0 5 4 */
+
+// line 30 jumps here.
+// what's the first 'e' that yields an 'f' <= 256
+
+/* 6 */ f = e | 65536;  /* Bori 4 65536 5 */
+/* 7 */ e = 1765573;  /* Seti 1765573 9 4 */
+/* 8 */ b = f & 255;  /* Bani 5 255 1 */
+/* 9 */ e = e + b;  /* Addr 4 1 4 */
+/* 10 */ e = e & 16777215;  /* Bani 4 16777215 4 */
+/* 11 */ e = e * 65899;  /* Muli 4 65899 4 */
+/* 12 */ e = e & 16777215;  /* Bani 4 16777215 4 */
+/* 13 */ b = 256 > f ? 1 : 0;  /* Gtir 256 5 1 */
+/* 14 */ c = b + c;  /* Addr 1 2 2 */
+/* 15 */ c = c + 1;  /* Addi 2 1 2 */
+/* 16 */ c = 27;  /* Seti 27 0 2 */
+/* 17 */ b = 0;  /* Seti 0 8 1 */
+
+/* 18 */ d = b + 1;  /* Addi 1 1 3 */
+/* 19 */ d = d * 256;  /* Muli 3 256 3 */
+/* 20 */ d = d > f ? 1 : 0;  /* Gtrr 3 5 3 */
+/* 21 */ c = d + c;  /* Addr 3 2 2 */
+/* 22 */ c = c + 1;  /* Addi 2 1 2 */
+/* 23 */ c = 25;  /* Seti 25 1 2 */
+/* 24 */ b = b + 1;  /* Addi 1 1 1 */
+/* 25 */ c = 17;  /* Seti 17 7 2 */
+
+/* 26 */ f = b;  /* Setr 1 4 5 */
+/* 27 */ c = 7;  /* Seti 7 6 2 */
+/* 28 */ b = e == a ? 1 : 0;  /* Eqrr 4 0 1 */
+/* 29 */ c = b + c;  /* Addr 1 2 2 */
+/* 30 */ c = 5;  /* Seti 5 2 2 */
+
+
+//
+// We must land at instruction 28 (goto from 16)
+// and 'a' must have the value of 'e' then.
+//
+
