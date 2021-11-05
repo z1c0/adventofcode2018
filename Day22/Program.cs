@@ -2,9 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 
-Console.WriteLine("Day 22 -START");
+Console.WriteLine("Day 22 - START");
 var sw = Stopwatch.StartNew();
 Part1();
 Part2();
@@ -15,7 +14,7 @@ static void Part1()
 	var (depth, target) = ReadInput();
 	var w = target.X + 1;
 	var h = target.Y + 1;
-  var grid = CreateCharGrid(w, h, depth);
+	var grid = CreateCharGrid(w, h, depth);
 	Print(grid, target);
 }
 
@@ -23,38 +22,35 @@ static void Part2()
 {
 	var (depth, target) = ReadInput();
 	var d = Math.Max(target.X, target.Y) + 100;
-  var grid = CreateCharGrid(d, d, depth);
+	var grid = CreateCharGrid(d, d, depth);
 	var node = UniformCostSearch(grid, target);
-	Console.WriteLine(node);
+	Console.WriteLine($"Total minutes spent: {node.Cost}");
 }
 
 static Node UniformCostSearch(char[,] grid, (int X, int Y) target)
 {
 	var startNode = new Node(0, 0, Equipment.Torch, 0);
-	var visitedNodes = new HashSet<(int X, int Y, Equipment Equipment, int Cost)>
+	var visitedNodes = new Dictionary<(int X, int Y, Equipment Equipment), int>
 	{
-		(startNode.X, startNode.Y, startNode.Equipment, startNode.Cost)
+		{ (startNode.X, startNode.Y, startNode.Equipment), startNode.Cost }
 	};
 	var queue = new PriorityQueue<Node>();
 	queue.Add(startNode);
-	while (queue.Any()) 
+	while (queue.Count > 0)
 	{
 		startNode = queue.RemoveFirst();
 		foreach (var node in GetAdjacentNodes(startNode, grid))
 		{
-			var p = (node.X, node.Y, node.Equipment, node.Cost);
-			if (!visitedNodes.Contains(p))
+			var p = (node.X, node.Y, node.Equipment);
+			if (!visitedNodes.ContainsKey(p) || visitedNodes[p] > node.Cost)
 			{
-				visitedNodes.Add(p);
+				visitedNodes[p] = node.Cost;
+
 				if (node.X == target.X && node.Y == target.Y)
 				{
-					System.Console.WriteLine(node + " from:" + startNode);
 					return node;
 				}
-				else
-				{
-					queue.Add(node);
-				}
+				queue.Add(node);
 			}
 		}
 	}
@@ -83,76 +79,104 @@ static IEnumerable<Node> CalcFromTo(Node node, int toX, int toY, char[,] grid)
 	Equipment equipment2 = default;
 	var cost1 = node.Cost + 1;
 	var cost2 = node.Cost + 1;
-	switch (grid[toX, toY])
+	var currentRegion = grid[node.Y, node.X];
+	var nextRegion = grid[toY, toX];
+	switch (nextRegion)
 	{
 		case '.':  // rocky
-			if (node.Equipment == Equipment.None)
+			if (node.Equipment == Equipment.Neither)
 			{
 				cost1 += 7;
-				cost2 += 7;
 				equipment1 = Equipment.ClimbingGear;
+
+				cost2 += 7;
 				equipment2 = Equipment.Torch;
 			}
 			else if (node.Equipment == Equipment.Torch)
 			{
 				cost1 += 7;
 				equipment1 = Equipment.ClimbingGear;
+
 				equipment2 = Equipment.Torch;
 			}
 			else if (node.Equipment == Equipment.ClimbingGear)
 			{
-				cost2 += 7;
 				equipment1 = Equipment.ClimbingGear;
+
+				cost2 += 7;
 				equipment2 = Equipment.Torch;
 			}
-		  break;
+			break;
 		case '=':  // wet
 			if (node.Equipment == Equipment.Torch)
 			{
 				cost1 += 7;
-				cost2 += 7;
 				equipment1 = Equipment.ClimbingGear;
-				equipment2 = Equipment.None;
+
+				cost2 += 7;
+				equipment2 = Equipment.Neither;
 			}
-			else if (node.Equipment == Equipment.None)
+			else if (node.Equipment == Equipment.Neither)
 			{
 				cost1 += 7;
 				equipment1 = Equipment.ClimbingGear;
-				equipment2 = Equipment.None;
+
+				equipment2 = Equipment.Neither;
 			}
 			else if (node.Equipment == Equipment.ClimbingGear)
 			{
-				cost2 += 7;
 				equipment1 = Equipment.ClimbingGear;
-				equipment2 = Equipment.None;
+
+				cost2 += 7;
+				equipment2 = Equipment.Neither;
 			}
-		  break;
+			break;
 		case '|':  // narrow
 			if (node.Equipment == Equipment.ClimbingGear)
 			{
 				cost1 += 7;
-				cost2 += 7;
 				equipment1 = Equipment.Torch;
-				equipment2 = Equipment.None;
+
+				cost2 += 7;
+				equipment2 = Equipment.Neither;
 			}
-			else if (node.Equipment == Equipment.None)
+			else if (node.Equipment == Equipment.Neither)
 			{
 				cost1 += 7;
 				equipment1 = Equipment.Torch;
-				equipment2 = Equipment.None;
+
+				equipment2 = Equipment.Neither;
 			}
 			else if (node.Equipment == Equipment.Torch)
 			{
-				cost2 += 7;
 				equipment1 = Equipment.Torch;
-				equipment2 = Equipment.None;
+
+				cost2 += 7;
+				equipment2 = Equipment.Neither;
 			}
-		  break;
+			break;
 		default:
 			throw new InvalidOperationException();
 	}
-	yield return new Node(toX, toY, equipment1, cost1);
-	yield return new Node(toX, toY, equipment2, cost2);
+	if (IsValidForRegion(equipment1, currentRegion))
+	{
+		yield return new Node(toX, toY, equipment1, cost1);
+	}
+	if (IsValidForRegion(equipment2, currentRegion))
+	{
+		yield return new Node(toX, toY, equipment2, cost2);
+	}
+}
+
+static bool IsValidForRegion(Equipment equipment, char region)
+{
+	return equipment switch
+	{
+		Equipment.ClimbingGear => region == '.' || region == '=',
+		Equipment.Torch => region == '.' || region == '|',
+		Equipment.Neither => region == '=' || region == '|',
+		_ => throw new InvalidOperationException(),
+	};
 }
 
 static char[,] CreateCharGrid(int w, int h, int depth)
@@ -208,7 +232,7 @@ static void Print(char[,] grid, (int X, int Y) target)
 			riskLevel += risk;
 			Console.Write(c);
 		}
-		Console.WriteLine();		
+		Console.WriteLine();
 	}
 	Console.WriteLine($"Total risk level: {riskLevel}");
 }
@@ -252,7 +276,7 @@ internal enum Equipment
 {
 	ClimbingGear,
 	Torch,
-	None,
+	Neither,
 }
 
 internal record Node(int X, int Y, Equipment Equipment, int Cost) : IComparable
@@ -260,29 +284,57 @@ internal record Node(int X, int Y, Equipment Equipment, int Cost) : IComparable
 	public int CompareTo(object obj)
 	{
 		var other = (Node)obj;
-		return Cost.CompareTo(other.Cost);
+		return other.Cost.CompareTo(Cost);
 	}
 }
 
+// from: https://stackoverflow.com/a/33888482/1051140
 internal class PriorityQueue<T>
 {
-	private readonly List<T> _items = new();
-
-	internal void Add(T item)
+	readonly IComparer<T> comparer;
+	T[] heap;
+	public int Count { get; private set; }
+	public PriorityQueue() : this(null) { }
+	public PriorityQueue(int capacity) : this(capacity, null) { }
+	public PriorityQueue(IComparer<T> comparer) : this(16, comparer) { }
+	public PriorityQueue(int capacity, IComparer<T> comparer)
 	{
-		_items.Add(item);
-		_items.Sort();
+		this.comparer = comparer ?? Comparer<T>.Default;
+		this.heap = new T[capacity];
 	}
-
-	internal bool Any()
+	public void Add(T v)
 	{
-		return _items.Count > 0;
+		if (Count >= heap.Length) Array.Resize(ref heap, Count * 2);
+		heap[Count] = v;
+		SiftUp(Count++);
 	}
-
-	internal T RemoveFirst()
+	public T RemoveFirst()
 	{
-		var item = _items[0];
-		_items.RemoveAt(0);
-		return item;
+		var v = Top();
+		heap[0] = heap[--Count];
+		if (Count > 0) SiftDown(0);
+		return v;
+	}
+	public T Top()
+	{
+		if (Count > 0) return heap[0];
+		throw new InvalidOperationException();
+	}
+	void SiftUp(int n)
+	{
+		var v = heap[n];
+		for (var n2 = n / 2; n > 0 && comparer.Compare(v, heap[n2]) > 0; n = n2, n2 /= 2) heap[n] = heap[n2];
+		heap[n] = v;
+	}
+	void SiftDown(int n)
+	{
+		var v = heap[n];
+		for (var n2 = n * 2; n2 < Count; n = n2, n2 *= 2)
+		{
+			if (n2 + 1 < Count && comparer.Compare(heap[n2 + 1], heap[n2]) > 0) n2++;
+			if (comparer.Compare(v, heap[n2]) >= 0) break;
+			heap[n] = heap[n2];
+		}
+		heap[n] = v;
 	}
 }
