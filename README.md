@@ -1,5 +1,11 @@
 # Advent of Code 2018
 
+https://adventofcode.com/2017
+
+![Advent of Code 2018 finished](aoc_2018_50_stars.png)
+
+![Advent of Code 2018 finished](aoc_2018_done.png)
+
 ## Day15
 
 This was quite a head-scratcher and I don't know how many hours I wasted on this one.
@@ -68,3 +74,10 @@ For example:
 
 The **code decompilation** helper from **Day 18** came in handy here again and
 made this puzzle trivial to solve.
+
+## Day23
+
+Part 2 of this puzzle was quite annoying. I tried a couple of approaches (e.g. line
+sweep) but to no avail. So I simply manually **binary-searched**
+my way into the solution. I haven't looked for a more algorithmic solution yet,
+being optimistic and thinking that I might revisit this one day. Let's see ;-)
